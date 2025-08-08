@@ -6,7 +6,7 @@ import AuthContext from "../../Providers/Auth/AuthContext";
 const Register = () => {
   const navigate = useNavigate();
   const { createUser, updateUserProfile, setUser } = useContext(AuthContext);
-
+    
   const handleSignUp = async (e) => {
     e.preventDefault();
     const form = e.target;
@@ -17,7 +17,17 @@ const Register = () => {
     const photo = form.photo.value;
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error("❌ Passwords do not match", {
+        style: {
+          background: "#1f2937",
+          color: "#fff",
+          border: "1px solid #ef4444",
+        },
+        iconTheme: {
+          primary: "#ef4444",
+          secondary: "#fff",
+        },
+      });
       return;
     }
 
@@ -25,99 +35,78 @@ const Register = () => {
       const result = await createUser(email, password);
       await updateUserProfile(name, photo);
       setUser({ ...result.user, displayName: name, photoURL: photo });
-      toast.success("Signup Successful");
+      toast.success("✅ Signup Successful", {
+        style: {
+          background: "#0f766e",
+          color: "#fff",
+          border: "1px solid #14b8a6",
+        },
+        iconTheme: {
+          primary: "#22c55e",
+          secondary: "#f0fdf4",
+        },
+      });
       navigate("/");
     } catch (err) {
-      console.error(err);
-      toast.error(err?.message);
+      toast.error(`🚫 ${err?.message || "Signup failed"}`, {
+        style: {
+          background: "#1f2937",
+          color: "#fff",
+          border: "1px solid #ef4444",
+        },
+      });
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-306px)] bg-gray-100 px-4 py-12">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white shadow-xl rounded-xl">
-        <h2 className="text-3xl font-bold text-center text-gray-800">
-          Create Account
+    <div className="flex items-center justify-center  px-4">
+      <div className="w-full max-w-md p-8 bg-white shadow-2xl rounded-2xl animate-fade-in">
+        <h2 className="text-4xl font-extrabold text-center text-[#0f766e] mb-6">
+          Create an Account
         </h2>
 
-        <form onSubmit={handleSignUp} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Full Name
-            </label>
-            <input
-              name="name"
-              type="text"
-              required
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Photo URL
-            </label>
-            <input
-              name="photo"
-              type="text"
-              required
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Email Address
-            </label>
-            <input
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Password
-            </label>
-            <input
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-600">
-              Confirm Password
-            </label>
-            <input
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-            />
-          </div>
+        <form onSubmit={handleSignUp} className="space-y-5">
+          {[
+            { label: "Full Name", name: "name", type: "text" },
+            { label: "Photo URL", name: "photo", type: "text" },
+            { label: "Email Address", name: "email", type: "email" },
+            { label: "Password", name: "password", type: "password" },
+            {
+              label: "Confirm Password",
+              name: "confirmPassword",
+              type: "password",
+            },
+          ].map(({ label, name, type }) => (
+            <div key={name}>
+              <label className="block mb-1 text-sm font-medium text-gray-700">
+                {label}
+              </label>
+              <input
+                name={name}
+                type={type}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#60CBD8] focus:border-transparent transition text-sm"
+              />
+            </div>
+          ))}
 
           <button
             type="submit"
-            className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+            className="w-full py-3 bg-[#0f766e] text-white font-semibold rounded-lg hover:bg-[#115e59] transition duration-300"
           >
-            Sign Up
+            🚀 Sign Up
           </button>
         </form>
 
-        <div className="text-center text-sm text-gray-500">
+        <p className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
+          <Link
+            to="/login"
+            className="text-[#0f766e] font-medium hover:underline"
+          >
             Sign in
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );

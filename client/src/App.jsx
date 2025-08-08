@@ -14,16 +14,16 @@ function App() {
 
   return (
     <>
-      <header className="bg-base-100 shadow-sm">
+      <header className="bg-[#E9F2FF]/40 min-h-20 backdrop-blur-3xl shadow-sm">
         <Navbar />
       </header>
 
-      <main className="min-h-[calc(100vh-100px)]">
+      <main className="min-h-[calc(100vh-200px)]">
         <Outlet />
       </main>
 
       <>
-      <Footer></Footer>
+        <Footer></Footer>
       </>
 
       <button
