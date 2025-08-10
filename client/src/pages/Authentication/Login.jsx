@@ -1,22 +1,32 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import AuthContext from "../../Providers/Auth/AuthContext";
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location?.state || "/";
+  const [emailErr, setEmailErr] = useState(false);
+  const { signIn, signInWithGoogle, setLoading, user } =
+    useContext(AuthContext);
 
-  const { signIn, signInWithGoogle } = useContext(AuthContext);
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
+  // Google SignIn
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
       toast.success("Sign-in Successful");
       navigate(from, { replace: true });
+      setLoading(false);
     } catch (err) {
       console.error(err);
       toast.error(err?.message);
+      setLoading(false);
     }
   };
 
@@ -30,12 +40,16 @@ const Login = () => {
       await signIn(email, pass);
       toast.success("Sign-in Successful");
       navigate(from, { replace: true });
+      setLoading(false);
     } catch (err) {
-      console.error(err);
+      console.log(err);
       toast.error(err?.message);
+      setLoading(false);
+      // navigate('/')
     }
   };
 
+  if (user) return;
   return (
     <>
       <section className="flex items-center justify-center min-h-[calc(100vh-302px)] px-4 py-10 bg-gray-50">
@@ -70,16 +84,39 @@ const Login = () => {
           {/* Sign-in Form */}
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
-              <label
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email address{" "}
+                {emailErr && (
+                  <span className="text-[10px] text-red-500">
+                    : Invalid email
+                  </span>
+                )}
+              </label>
+              {/*  <label
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Email
-              </label>
+              </label> */}
               <input
+                onChange={(e) => {
+                  if (!e.target.value) {
+                    setEmailErr("");
+                    return;
+                  } else if (
+                    /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(
+                      e.target.value
+                    )
+                  ) {
+                    setEmailErr(false);
+                  } else {
+                    setEmailErr(true);
+                  }
+                }}
                 id="email"
                 name="email"
                 type="email"
+                placeholder="example@gmail.com"
                 autoComplete="email"
                 required
                 className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
