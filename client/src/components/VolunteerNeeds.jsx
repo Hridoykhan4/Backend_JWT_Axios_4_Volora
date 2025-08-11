@@ -22,7 +22,7 @@ const VolunteerNeeds = () => {
     isError,
     error,
   } = useQuery({
-    queryKey: ["needsOnDeadline"],
+    queryKey: ["needsOnHome"],
     queryFn: async () => {
       const { data } = await axiosSecure(`/volunteers`);
       return data;

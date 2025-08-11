@@ -2,13 +2,19 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
-
+import toast from "react-hot-toast";
 import "react-datepicker/dist/react-datepicker.css";
 import useAuthValue from "../../hooks/useAuthValue";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
+import { useNavigate } from "react-router-dom";
 
 const AddVolunteerNeed = () => {
   const [deadline, setDeadline] = useState(new Date());
+  const axiosSecure = useAxiosSecure();
+  const nav = useNavigate();
   const { user } = useAuthValue();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     postTitle: "",
     description: "",
@@ -25,7 +31,42 @@ const AddVolunteerNeed = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const { mutateAsync } = useMutation({
+    mutationFn: async (others) => {
+      const { data } = await axiosSecure.post(`/add-volunteer`, others);
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.insertedId) {
+        setFormData({
+          postTitle: "",
+          description: "",
+          location: "",
+          volunteersNeeded: "",
+          thumbnail: "",
+          category: "",
+          email: user?.email,
+          name: user?.displayName,
+          photo: user?.photoURL,
+        });
+        setDeadline(new Date(Date.now() + 24 * 60 * 60 * 1000));
+        toast.success("Inserted Successfully", {
+          position: "top-right",
+          className: "text-lg font-bold",
+        });
+        nav(`/manage-posts`);
+      } else {
+        toast.error("Something went wrong. Please try again.", {
+          position: "top-right",
+          className: "text-lg font-bold",
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["allVolunteer"] });
+      queryClient.invalidateQueries({ queryKey: ["needsOnHome"] });
+    },
+  });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { volunteersNeeded, name, email, photo, ...others } = formData;
     others.organizer = {
@@ -35,7 +76,17 @@ const AddVolunteerNeed = () => {
     };
     others.deadline = deadline;
     others.volunteersNeeded = parseInt(volunteersNeeded);
-    console.log(others);
+
+    if (
+      new Date(others.deadline).toDateString() === new Date().toDateString()
+    ) {
+      return toast.error("Deadline can not be today's date", {
+        position: "top-right",
+        className: "text-lg font-bold",
+      });
+    }
+
+    await mutateAsync(others);
   };
 
   return (
@@ -109,6 +160,7 @@ const AddVolunteerNeed = () => {
           <div>
             <label className="block font-medium mb-1">Date</label>
             <DatePicker
+              minDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
               className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               selected={deadline}
               onChange={(date) => setDeadline(date)}
@@ -166,13 +218,10 @@ const AddVolunteerNeed = () => {
           <div>
             <label className="block font-medium mb-1">Email & name</label>
             <input
-              type="url"
-              name="thumbnail"
               value={`${formData?.email}, ${formData?.name}`}
               disabled
               readOnly
               className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              placeholder="Paste image link"
             />
           </div>
         </div>

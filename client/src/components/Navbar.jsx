@@ -19,7 +19,6 @@ const Navbar = () => {
   const { logOut } = useAuthValue();
   const toggleDrawer = () => setOpen(!open);
   const closeDrawer = () => setOpen(false);
-
   const navLinkStyles = "font-medium  rounded  transition";
 
   const pubLicNavItems = (
@@ -86,32 +85,44 @@ const Navbar = () => {
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1000] mt-3 w-52 p-2 shadow"
               >
                 <li>
-                  <a
-                    href="/profile"
-                    className="flex items-center space-x-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-                  >
-                    <FiUser size={20} />
-                    <span>My Profile</span>
-                  </a>
+                  <ul className="dropdown dropdown-end w-full cursor-pointer -ml-[1px]">
+                    <div tabIndex={0} role="button">
+                      <div className="indicator">
+                        <div
+                          // href="/profile"
+                          className="flex items-center space-x-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                        >
+                          <FiUser size={20} />
+                          <span>My Profile 👇</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      tabIndex={0}
+                      className=" dropdown-content bg-base-100 space-y-2 z-1 mt-3  shadow"
+                    >
+                      <li>
+                        <NavLink
+                          to="/add-volunteer"
+                          className="flex items-center space-x-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                        >
+                          <FiPlusCircle size={20} />
+                          <span>Add Volunteer Post</span>
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink
+                          to="/manage-posts"
+                          className="flex items-center space-x-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                        >
+                          <FiClipboard size={20} />
+                          <span>Manage My Posts</span>
+                        </NavLink>
+                      </li>
+                    </div>
+                  </ul>
                 </li>
-                <li>
-                  <Link
-                    to="/add-volunteer"
-                    className="flex items-center space-x-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-                  >
-                    <FiPlusCircle size={20} />
-                    <span>Add Volunteer Post</span>
-                  </Link>
-                </li>
-                <li>
-                  <a
-                    href="/manage-posts"
-                    className="flex items-center space-x-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-                  >
-                    <FiClipboard size={20} />
-                    <span>Manage My Posts</span>
-                  </a>
-                </li>
+
                 <li>
                   <a
                     href="/volunteer-requests"

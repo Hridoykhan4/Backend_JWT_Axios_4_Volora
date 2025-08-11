@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 import { motion, transform } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const cardVariants = {
   hidden: { opacity: 0, y: 30 },
@@ -43,12 +44,12 @@ const VolunteerCard = ({ volunteer }) => {
           </time>
         </p>
 
-        <button
-          type="button"
-          className="mt-6 w-full rounded-md bg-indigo-600 px-5 py-2 text-white font-semibold text-sm shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
+        <Link
+        to={`/view-volunteer/${volunteer?._id}`}
+          className="mt-6 block w-full rounded-md bg-indigo-600 px-5 py-2 text-white font-semibold text-sm shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition"
         >
           View Details
-        </button>
+        </Link>
       </div>
     </motion.div>
   );

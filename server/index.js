@@ -1,14 +1,14 @@
 const express = require('express')
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 5000
 
 
 const corsOptions = {
     origin: ["http://localhost:5173"],
-    credentials: true 
+    credentials: true
 }
 
 // MiddleWares
@@ -34,10 +34,40 @@ async function run() {
 
         const volunteerCollection = client.db('volora').collection('volunteers')
 
+        // Get All Volunteers in collection..
         app.get('/volunteers', async (req, res) => {
             const result = await volunteerCollection.find({}).toArray()
             res.send(result)
         })
+
+        // Post/Include a new volunteer post
+        app.post('/add-volunteer', async (req, res) => {
+            const volunteerData = req.body;
+            console.log(volunteerData)
+            try {
+                const result = await volunteerCollection.insertOne(volunteerData);
+                res.send(result);
+            }
+            catch (err) {
+                res.status(500).send({ message: "Failed to add new User now!" })
+            }
+        })
+
+
+        // Volunteer need post detail, get a specif volunteer data
+        app.get('/volunteer/:id', async (req, res) => {
+            const { id } = req.params;
+            const result = await volunteerCollection.findOne({ _id: new ObjectId(id) });
+            res.send(result)
+        })
+
+
+
+
+
+
+
+
 
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
