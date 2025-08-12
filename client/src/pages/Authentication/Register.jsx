@@ -2,8 +2,10 @@ import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import AuthContext from "../../Providers/Auth/AuthContext";
+import useScrollTo from "../../hooks/useScrollTo";
 
 const Register = () => {
+  useScrollTo();
   const navigate = useNavigate();
   const { createUser, updateUserProfile, setUser, setLoading } =
     useContext(AuthContext);
@@ -22,11 +24,19 @@ const Register = () => {
   // Toast styles
   const toastStyle = {
     success: {
-      style: { background: "#0f766e", color: "#fff", border: "1px solid #14b8a6" },
+      style: {
+        background: "#0f766e",
+        color: "#fff",
+        border: "1px solid #14b8a6",
+      },
       iconTheme: { primary: "#22c55e", secondary: "#f0fdf4" },
     },
     error: {
-      style: { background: "#1f2937", color: "#fff", border: "1px solid #ef4444" },
+      style: {
+        background: "#1f2937",
+        color: "#fff",
+        border: "1px solid #ef4444",
+      },
       iconTheme: { primary: "#ef4444", secondary: "#fff" },
     },
   };
@@ -84,7 +94,11 @@ const Register = () => {
             { label: "Photo URL", name: "photo", type: "url" },
             { label: "Email Address", name: "email", type: "email" },
             { label: "Password", name: "password", type: "password" },
-            { label: "Confirm Password", name: "confirmPassword", type: "password" },
+            {
+              label: "Confirm Password",
+              name: "confirmPassword",
+              type: "password",
+            },
           ].map(({ label, name, type }) => (
             <div key={name}>
               <label className="block mb-1 text-sm font-medium text-gray-700">
@@ -97,15 +111,15 @@ const Register = () => {
                 onChange={handleChange}
                 required
                 className={`w-full px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#60CBD8] focus:border-transparent transition text-sm ${
-                  passErr && name === "password" ? "border-red-500" : "border-gray-300"
+                  passErr && name === "password"
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
               />
             </div>
           ))}
 
-          {passErr && (
-            <p className="text-red-500 text-sm">{passErr}</p>
-          )}
+          {passErr && <p className="text-red-500 text-sm">{passErr}</p>}
 
           <button
             type="submit"
@@ -117,7 +131,10 @@ const Register = () => {
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <Link to="/login" className="text-[#0f766e] font-medium hover:underline">
+          <Link
+            to="/login"
+            className="text-[#0f766e] font-medium hover:underline"
+          >
             Sign in
           </Link>
         </p>

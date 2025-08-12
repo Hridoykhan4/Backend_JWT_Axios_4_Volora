@@ -32,11 +32,27 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
 
+        /* DB collection Starts */
         const volunteerCollection = client.db('volora').collection('volunteers')
+        const requestCollection = client.db('volora').collection('applicant-request');
+        /* DB collection End */
+
 
         // Get All Volunteers in collection..
         app.get('/volunteers', async (req, res) => {
-            const result = await volunteerCollection.find({}).toArray()
+            const { searchField } = req.query;
+            console.log(req.query.searchField)
+            console.log(searchField)
+            let query = {}
+            if (searchField) {
+                query = {
+                    $or: [
+                        { postTitle: { $regex: searchField, $options: "i" } },
+                        { category: { $regex: searchField, $options: "i" } },
+                    ]
+                }
+            }
+            const result = await volunteerCollection.find(query).toArray()
             res.send(result)
         })
 
@@ -54,7 +70,7 @@ async function run() {
         })
 
 
-        // Volunteer need post detail, get a specif volunteer data
+        // Volunteer need post detail / update a specific job, get a specif volunteer data
         app.get('/volunteer/:id', async (req, res) => {
             const { id } = req.params;
             const result = await volunteerCollection.findOne({ _id: new ObjectId(id) });
@@ -62,9 +78,91 @@ async function run() {
         })
 
 
+        // Retrieve my volunteer need post & my volunteer request post
+        app.get('/my-post', async (req, res) => {
+            const { email } = req.query;
+            const query = { "organizer.email": email }
+            const result = await volunteerCollection.find(query).toArray();
+            res.send(result)
+        })
 
 
 
+        // Update a volunteer post
+        app.put('/volunteer/:id', async (req, res) => {
+            const updatedVolunteerData = req.body;
+            const query = { _id: new ObjectId(req.params.id) };
+            const updateData = {
+                $set: updatedVolunteerData
+            }
+            const result = await volunteerCollection.updateOne(query, updateData);
+            res.send(result);
+        })
+
+
+        /* {
+          thumbnail: 'https://i.ibb.co/Hgt3t5X/Young-children-attending-a-workshop-in-an-art-gall.jpg',
+          postTitle: "Children's Art Workshop",
+          location: 'City Art Center, 456 Elm St, Artsville, USA',     
+          deadline: '2025-12-05T13:09:02.000Z',
+          category: 'Education',
+          organizer: {
+            name: 'Pranta Deb Nath',
+            email: 'prantadeb@gmail.com',
+            photo: 'https://i.ibb.co/rk7V7X0/1655721926569-3.jpg'      
+          },
+          suggestion: 'adsda',
+          volunteerId: '6896eed51bac51b4c94246ec',
+          volunteerDetails: {
+            name: 'Hridoy khan',
+            email: 'hridoykhan148385@gmail.com',
+            photo: 'https://lh3.googleusercontent.com/a/ACg8ocKyl10F6nY22XSEeVV221cHtKjsA6FjKq1Gx1I7Rd_A5AOCmqd-zg=s96-c'
+          }
+        } */
+
+        /* Request Collection Starts */
+        // Post request
+
+
+
+
+        app.post('/volunteer-request/:email', async (req, res) => {
+            try {
+
+                const { email } = req.params;
+                const { volunteerId, ...request } = req.body;
+                const isRequestExist = await requestCollection.findOne({ "volunteerDetails.email": email, volunteerId });
+                // Checking whether already exists or not
+                if (isRequestExist) {
+                    return res.status(409).send({ message: "Already applied for this Post" });
+                }
+                const query = { _id: new ObjectId(volunteerId) }
+                const volunteer = await volunteerCollection.findOne(query);
+
+                if (!volunteer) {
+                    return res.status(404).send({ message: 'Volunteer not found' });
+                }
+                if (volunteer.volunteersNeeded < 1) {
+                    return res.send({ message: 'No volunteer needed' });
+                }
+                // Reducing volunteer needed Count
+                const updateVolunteerNeedCount = await volunteerCollection.updateOne(query, { $inc: { volunteersNeeded: -1 } })
+
+                const result = await requestCollection.insertOne({ volunteerId, ...request });
+
+                res.send(result)
+            }
+            catch (err) {
+                res.status(500).send({ message: "Server Error" })
+            }
+        })
+
+
+
+
+
+
+        /* Request Collection Ends */
 
 
 

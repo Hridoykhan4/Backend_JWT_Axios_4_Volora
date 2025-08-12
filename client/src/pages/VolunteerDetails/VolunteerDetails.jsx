@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useParams } from "react-router-dom";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
 import useScrollTo from "../../hooks/useScrollTo";
@@ -8,12 +9,14 @@ import { useState } from "react";
 import DatePicker from "react-datepicker";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import useAuthValue from "../../hooks/useAuthValue";
+import toast from "react-hot-toast";
 const VolunteerDetails = () => {
   const { user } = useAuthValue();
+  const nav = useNavigate();
   useScrollTo();
   const { id } = useParams();
   const axiosSecure = useAxiosSecure();
-  const [volunteerDeadline, setVolunteerDeadline] = useState(new Date());
+  const queryClient = useQueryClient();
   const [beVolunteerModal, setBeVolunteerModal] = useState(false);
   const {
     data: volunteer = {},
@@ -37,6 +40,56 @@ const VolunteerDetails = () => {
     volunteersNeeded,
     thumbnail,
   } = volunteer || {};
+
+  /* Mutation Starts */
+
+  const { mutateAsync } = useMutation({
+    mutationFn: async (others) => {
+      const { data } = await axiosSecure.post(
+        `/volunteer-request/${user?.email}`,
+        others
+      );
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["volunteerDetails", id] });
+      queryClient.invalidateQueries({ queryKey: ["allVolunteer"] });
+      queryClient.invalidateQueries({ queryKey: ["needsOnHome"] });
+      toast.success(data?.message || "Request submitted successfully");
+      setBeVolunteerModal(false);
+      nav("/");
+    },
+    onError: (error) => {
+      const errMsg =
+        error?.response?.data?.message ||
+        error.message ||
+        "Something went wrong";
+      toast.error(errMsg);
+      console.error("❌ Error:", errMsg);
+    },
+  });
+
+  /* Mutation Ends */
+
+  // Apply Request
+  const handleApplyRequest = async (e) => {
+    e.preventDefault();
+
+    const suggestion = e.target.suggestion.value;
+
+    // eslint-disable-next-line no-unused-vars
+    const { _id, volunteersNeeded, description, ...others } = volunteer || {};
+
+    others.suggestion = suggestion;
+    others.volunteerId = _id;
+    others.volunteerDetails = {
+      name: user?.displayName,
+      email: user?.email,
+      photo: user?.photoURL,
+    };
+
+    await mutateAsync(others);
+  };
 
   if (isLoading) return <LoadingSpinner></LoadingSpinner>;
 
@@ -138,7 +191,7 @@ const VolunteerDetails = () => {
 
               {/* form Start */}
               <motion.form
-                // onSubmit={handleSubmit}
+                onSubmit={handleApplyRequest}
                 className="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-2xl shadow-md border border-gray-200"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -324,7 +377,7 @@ const VolunteerDetails = () => {
                   type="submit"
                   className="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-600 transition"
                 >
-                  Submit Post
+                  Send Request
                 </motion.button>
               </motion.form>
               {/* form End */}
@@ -336,28 +389,42 @@ const VolunteerDetails = () => {
                 >
                   Close
                 </button>
-                <button className="btn btn-primary">Submit</button>
               </div>
             </div>
           </div>
         )}
 
         {/* Buttons */}
-        <div className="flex gap-4 mt-2">
-          <motion.button
-            onClick={() => setBeVolunteerModal(true)}
-            whileHover={{ scale: 1.05 }}
-            className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-full shadow-lg"
-          >
-            Be a Volunteer
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            className="px-6 py-2 bg-gradient-to-r from-teal-500 to-green-500 text-white font-semibold rounded-full shadow-lg"
-          >
-            Organizer
-          </motion.button>
-        </div>
+        {user?.email === volunteer.organizer.email ? (
+          <div className="text-lg font-semibold text-amber-500 animate-pulse">
+            {volunteer?.postTitle}'s post is your own post 🔥
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-4 mt-2">
+            <motion.button
+              onClick={() => setBeVolunteerModal(true)}
+              whileHover={{ scale: 1.08, rotate: 1 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative overflow-hidden px-6 py-2 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 
+                 text-white font-bold rounded-full shadow-lg shadow-red-500/50 transition-all duration-300
+                 hover:shadow-red-500/80"
+            >
+              <span className="relative z-10">🔥 Be a Volunteer</span>
+              <span className="absolute inset-0 bg-gradient-to-r from-yellow-500 via-red-500 to-pink-500 opacity-0 hover:opacity-30 transition-opacity duration-300" />
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.08, rotate: -1 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative overflow-hidden px-6 py-2 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 
+                 text-white font-bold rounded-full shadow-lg shadow-blue-500/50 transition-all duration-300
+                 hover:shadow-blue-500/80"
+            >
+              <span className="relative z-10">⚡ Organizer</span>
+              <span className="absolute inset-0 bg-gradient-to-r from-purple-600 via-blue-500 to-cyan-500 opacity-0 hover:opacity-30 transition-opacity duration-300" />
+            </motion.button>
+          </div>
+        )}
       </div>
     </motion.div>
   );

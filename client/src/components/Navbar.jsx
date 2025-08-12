@@ -21,6 +21,7 @@ const Navbar = () => {
   const closeDrawer = () => setOpen(false);
   const navLinkStyles = "font-medium  rounded  transition";
 
+
   const pubLicNavItems = (
     <>
       {[
@@ -66,7 +67,7 @@ const Navbar = () => {
           </Link>
         ) : (
           <>
-            <div className="dropdown dropdown-end z-50">
+            <div className="dropdown dropdown-end relative z-50">
               <div
                 tabIndex={0}
                 role="button"
@@ -74,6 +75,7 @@ const Navbar = () => {
               >
                 <div className="w-12  rounded-full">
                   <img
+                  referrerPolicy="no-referrer"
                     title={user?.displayName}
                     alt="Tailwind CSS Navbar component"
                     src={user?.photoURL}
@@ -82,7 +84,7 @@ const Navbar = () => {
               </div>
               <ul
                 tabIndex={0}
-                className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1000] mt-3 w-52 p-2 shadow"
+                className="menu menu-sm dropdown-content relative bg-base-100 rounded-box !z-[1000] mt-3 w-52 p-2 shadow"
               >
                 <li>
                   <ul className="dropdown dropdown-end w-full cursor-pointer -ml-[1px]">
@@ -217,7 +219,8 @@ const Navbar = () => {
                 onClick={() => {
                   logOut().then(() => {
                     toast.success("Successfully Logout", {
-                      position: "top-right",
+                      position: "bottom-right",
+                      className: "text-lg font-semibold",
                     });
                     closeDrawer;
                   });

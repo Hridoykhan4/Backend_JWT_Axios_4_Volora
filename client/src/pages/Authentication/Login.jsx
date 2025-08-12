@@ -1,27 +1,24 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import { useContext,  useState } from "react";
 import toast from "react-hot-toast";
 import AuthContext from "../../Providers/Auth/AuthContext";
+import useScrollTo from "../../hooks/useScrollTo";
 const Login = () => {
+  useScrollTo();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location?.state || "/";
+  const from = location?.state?.from || "/";
   const [emailErr, setEmailErr] = useState(false);
   const { signIn, signInWithGoogle, setLoading, user } =
     useContext(AuthContext);
 
-  useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
-  }, [user, navigate]);
 
   // Google SignIn
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
       toast.success("Sign-in Successful");
-      navigate(from, { replace: true });
+    navigate(from, { replace: true });
       setLoading(false);
     } catch (err) {
       console.error(err);
@@ -39,7 +36,7 @@ const Login = () => {
     try {
       await signIn(email, pass);
       toast.success("Sign-in Successful");
-      navigate(from, { replace: true });
+       navigate(from, { replace: true });
       setLoading(false);
     } catch (err) {
       console.log(err);

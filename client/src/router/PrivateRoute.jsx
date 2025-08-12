@@ -3,14 +3,15 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import useAuthValue from "../hooks/useAuthValue";
 
 const PrivateRoute = ({ children }) => {
-    const {pathname} = useLocation();
+  const { pathname } = useLocation();
   const { loading, user } = useAuthValue();
   if (loading) {
     return <LoadingSpinner></LoadingSpinner>;
   }
-  if (user) return children;
-
-  <Navigate to="/login" state={pathname}></Navigate>;
+  if (!user) {
+    return <Navigate to="/login" state={{from: pathname}} replace></Navigate>;
+  }
+  return children;
 };
 
 export default PrivateRoute;
