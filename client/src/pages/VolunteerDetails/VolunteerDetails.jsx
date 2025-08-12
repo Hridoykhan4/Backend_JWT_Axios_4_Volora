@@ -55,9 +55,10 @@ const VolunteerDetails = () => {
       queryClient.invalidateQueries({ queryKey: ["volunteerDetails", id] });
       queryClient.invalidateQueries({ queryKey: ["allVolunteer"] });
       queryClient.invalidateQueries({ queryKey: ["needsOnHome"] });
+      queryClient.invalidateQueries({ queryKey: ["manage-posts"] });
       toast.success(data?.message || "Request submitted successfully");
       setBeVolunteerModal(false);
-      nav("/");
+      nav("/manage-posts");
     },
     onError: (error) => {
       const errMsg =
@@ -87,7 +88,7 @@ const VolunteerDetails = () => {
       email: user?.email,
       photo: user?.photoURL,
     };
-
+    others.status = "requested";
     await mutateAsync(others);
   };
 
@@ -157,6 +158,7 @@ const VolunteerDetails = () => {
         <div className="mt-4 bg-white/80 backdrop-blur-md border border-gray-200 rounded-xl p-4 flex items-center gap-4 shadow-md hover:shadow-lg transition-shadow duration-300">
           {/* Organizer Avatar */}
           <img
+            referrerPolicy="no-referrer"
             src={
               volunteer?.organizer?.photo || "https://via.placeholder.com/80"
             }
@@ -395,23 +397,25 @@ const VolunteerDetails = () => {
         )}
 
         {/* Buttons */}
-        {user?.email === volunteer.organizer.email ? (
+        {user?.email === volunteer?.organizer?.email ? (
           <div className="text-lg font-semibold text-amber-500 animate-pulse">
             {volunteer?.postTitle}'s post is your own post 🔥
           </div>
         ) : (
           <div className="flex flex-wrap gap-4 mt-2">
-            <motion.button
-              onClick={() => setBeVolunteerModal(true)}
-              whileHover={{ scale: 1.08, rotate: 1 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative overflow-hidden px-6 py-2 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 
+            {volunteer?.volunteersNeeded !== 0 && (
+              <motion.button
+                onClick={() => setBeVolunteerModal(true)}
+                whileHover={{ scale: 1.08, rotate: 1 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative overflow-hidden px-6 py-2 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 
                  text-white font-bold rounded-full shadow-lg shadow-red-500/50 transition-all duration-300
                  hover:shadow-red-500/80"
-            >
-              <span className="relative z-10">🔥 Be a Volunteer</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-yellow-500 via-red-500 to-pink-500 opacity-0 hover:opacity-30 transition-opacity duration-300" />
-            </motion.button>
+              >
+                <span className="relative z-10">🔥 Be a Volunteer</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-yellow-500 via-red-500 to-pink-500 opacity-0 hover:opacity-30 transition-opacity duration-300" />
+              </motion.button>
+            )}
 
             <motion.button
               whileHover={{ scale: 1.08, rotate: -1 }}

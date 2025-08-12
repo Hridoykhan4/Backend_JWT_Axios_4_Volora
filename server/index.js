@@ -41,7 +41,6 @@ async function run() {
         // Get All Volunteers in collection..
         app.get('/volunteers', async (req, res) => {
             const { searchField } = req.query;
-            console.log(req.query.searchField)
             console.log(searchField)
             let query = {}
             if (searchField) {
@@ -100,6 +99,14 @@ async function run() {
         })
 
 
+
+        // Delete a volunteer post
+        app.delete('/volunteer/:id', async (req, res) => {
+            res.send(await volunteerCollection.deleteOne({ _id: new ObjectId(req.params.id) }))
+        })
+
+
+
         /* {
           thumbnail: 'https://i.ibb.co/Hgt3t5X/Young-children-attending-a-workshop-in-an-art-gall.jpg',
           postTitle: "Children's Art Workshop",
@@ -121,10 +128,9 @@ async function run() {
         } */
 
         /* Request Collection Starts */
+
+
         // Post request
-
-
-
 
         app.post('/volunteer-request/:email', async (req, res) => {
             try {
@@ -157,8 +163,19 @@ async function run() {
             }
         })
 
+        // Retrieve my requests
+        app.get('/my-requests/:email', async (req, res) => {
+            const { email } = req.params;
+            console.log(email)
+            const query = { "volunteerDetails.email": email }
+            const result = await requestCollection.find(query).toArray();
+            res.send(result)
+        })
 
-
+        // Delete My request
+        app.delete('/volunteer-request/:id', async (req, res) => {
+            res.send(await requestCollection.deleteOne({ _id: new ObjectId(req.params.id) }))
+        })
 
 
 
