@@ -16,7 +16,7 @@ const VolunteerCard = ({ volunteer }) => {
       whileInView="visible"
       viewport={{ once: true, amount: 0.15 }}
       // whileHover="hover"
-      className="p-6 max-w-lg border hover:scale-105 transition-all  border-indigo-300  rounded-3xl flex flex-col items-center bg-white cursor-pointer  duration-700 ease-in-out"
+      className="p-6 max-w-lg border hover:scale-105 transition-all  border-indigo-300  rounded-3xl flex flex-col items-center   cursor-pointer  duration-700 ease-in-out"
     >
       <img
         src={volunteer?.thumbnail}

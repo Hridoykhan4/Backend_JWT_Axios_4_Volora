@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
 import useAxiosSecure from "../hooks/useAxiosSecure";
+import useAuthValue from "../hooks/useAuthValue";
 
 const MyRequest = ({ post, i }) => {
   const axiosSecure = useAxiosSecure();
+  const { user } = useAuthValue();
   const queryClient = useQueryClient();
   const categoryColor = {
     "Social Service": "bg-green-500",
@@ -13,17 +14,49 @@ const MyRequest = ({ post, i }) => {
     HealthCare: "bg-red-500",
   };
 
-  //   Mutate Async
-
-  const { mutateAsync: deleteRequest } = useMutation({
-    mutationFn: async (id) => {
-      const { data } = await axiosSecure.delete(`/volunteer-request/${id}`);
+  // Update Status
+  const updateStatus = useMutation({
+    mutationFn: async ({ id }) => {
+      const { data } = await axiosSecure.patch(`/volunteer-requests/${id}`, {
+        status: "completed",
+      });
       return data;
     },
     onSuccess: (data) => {
-      ["my-post", "needsOnHome", "allVolunteer", "my-requests"].forEach((key) =>
-        queryClient.invalidateQueries({ queryKey: [key] })
-      );
+      if (data?.result?.modifiedCount) {
+        toast.success(`Successfully updated Job Status`, {
+          position: "top-right",
+        });
+      }
+      queryClient.invalidateQueries({
+        queryKey: ["my-volunteer-requests", user?.email],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["my-post", data?.post?.volunteerDetails?.email],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["my-requests", data?.post?.volunteerDetails?.email],
+      });
+    },
+  });
+
+  //   Mutate Async
+
+  const { mutateAsync: deleteRequest } = useMutation({
+    mutationFn: async ({ id, volunteerId }) => {
+      const { data } = await axiosSecure.delete(`/volunteer-request/${id}`, {
+        data: { volunteerId },
+      });
+      return data;
+    },
+    onSuccess: (data) => {
+      [
+        "my-post",
+        "needsOnHome",
+        "allVolunteer",
+        "my-requests",
+        "volunteerDetails",
+      ].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
       toast.success(data?.message || "Request deleted successfully!", {
         duration: 3000,
         position: "top-center",
@@ -38,7 +71,7 @@ const MyRequest = ({ post, i }) => {
     },
   });
 
-  const handleDelete = (id) => {
+  const handleDelete = (id, volunteerId) => {
     toast(
       (t) => (
         <div className="p-5 rounded-lg shadow-lg bg-white border border-gray-300 w-80">
@@ -48,7 +81,7 @@ const MyRequest = ({ post, i }) => {
           <div className="flex justify-center gap-5">
             <button
               onClick={() => {
-                deleteConfirm(id);
+                deleteConfirm(id, volunteerId);
                 toast.dismiss(t.id);
               }}
               className="px-5 py-2 font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
@@ -73,12 +106,12 @@ const MyRequest = ({ post, i }) => {
   };
 
   // Delete Confirm
-  const deleteConfirm = async (id) => {
-    await deleteRequest(id);
+  const deleteConfirm = async (id, volunteerId) => {
+    await deleteRequest({ id, volunteerId });
   };
 
   return (
-    <tr className="hover:bg-indigo-100 transition-colors duration-300 border-b border-gray-200 last:border-b-0">
+    <tr className="hover:bg-indigo-100 transition-colors  duration-300 border-b border-gray-200 last:border-b-0">
       <th className=" py-2 text-center font-semibold text-indigo-700 text-lg">
         {i + 1}
       </th>
@@ -114,14 +147,22 @@ const MyRequest = ({ post, i }) => {
         </span>
       </td>
 
-      <td className="px-5 py-4 text-center font-semibold text-indigo-600 text-lg">
+      <td
+        className={`px-5 py-4 text-center w-5 h-5 font-semibold text-lg ${
+          post?.status === "requested"
+            ? "text-blue-500"
+            : post?.status === "accepted"
+            ? "text-green-600  "
+            : "text-red-600"
+        } `}
+      >
         {post?.status}
       </td>
 
       {/* Actions */}
       <td className="flex gap-3 justify-center items-center px-3 py-10">
         <button
-          onClick={() => handleDelete(post?._id)}
+          onClick={() => handleDelete(post?._id, post?.volunteerId)}
           title="Delete"
           className="btn btn-sm btn-outline btn-error flex items-center gap-1 hover:bg-error hover:text-white transition"
         >
@@ -142,12 +183,28 @@ const MyRequest = ({ post, i }) => {
           Delete
         </button>
 
-        <Link
-          to={`/view-volunteer/${post?.volunteerId}`}
-          className="btn btn-xs text-gray-600 hover:text-indigo-700 transition font-semibold"
+        <button
+          disabled={post?.status !== "accepted"}
+          onClick={() => updateStatus.mutate({ id: post?._id })}
+          title="Mark as Complete"
+          className="btn btn-sm btn-outline btn-success flex disabled:cursor-not-allowed items-center gap-1 hover:bg-green-500 hover:text-white transition"
         >
-          Details
-        </Link>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          Complete
+        </button>
       </td>
     </tr>
   );

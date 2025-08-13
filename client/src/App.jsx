@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigation } from "react-router-dom";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import useAuthValue from "./hooks/useAuthValue";
@@ -9,7 +9,7 @@ import Footer from "./components/Footer";
 
 function App() {
   const { loading } = useAuthValue();
-
+  const navigation = useNavigation();
   if (loading) return <LoadingSpinner />;
 
   return (
@@ -19,7 +19,11 @@ function App() {
       </header>
 
       <main className="min-h-[calc(100vh-200px)]">
-        <Outlet />
+        {navigation.state === "loading" ? (
+          <LoadingSpinner></LoadingSpinner>
+        ) : (
+          <Outlet />
+        )}
       </main>
 
       <>

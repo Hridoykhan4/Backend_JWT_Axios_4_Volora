@@ -11,31 +11,42 @@ import {
 } from "firebase/auth";
 import AuthContext from "./AuthContext";
 import app from "../../firebase/firebase.config";
+import axios from "axios";
 
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
-
+const axiosSecure = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+});
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const createUser = (email, password) => {
+  const createUser = async (email, password) => {
     setLoading(true);
-    return createUserWithEmailAndPassword(auth, email, password);
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    await axiosSecure.post("/jwt", { email: result?.user?.email });
+    return result;
   };
 
-  const signIn = (email, password) => {
+  const signIn = async (email, password) => {
     setLoading(true);
-    return signInWithEmailAndPassword(auth, email, password);
+    const result = signInWithEmailAndPassword(auth, email, password);
+    await axiosSecure.post("/jwt", { email: result?.user?.email });
+    return result;
   };
 
-  const signInWithGoogle = () => {
+  const signInWithGoogle = async () => {
     setLoading(true);
-    return signInWithPopup(auth, googleProvider);
+    const result = await signInWithPopup(auth, googleProvider);
+    await axiosSecure.post("/jwt", { email: result?.user?.email });
+    return result;
   };
 
   const logOut = async () => {
     setLoading(true);
+    await axiosSecure('/logout');
     return signOut(auth);
   };
 
@@ -50,7 +61,6 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      // console.log("CurrentUser-->", currentUser);
       setLoading(false);
     });
     return () => {

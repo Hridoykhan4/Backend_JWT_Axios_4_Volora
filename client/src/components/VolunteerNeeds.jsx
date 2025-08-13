@@ -55,7 +55,7 @@ const VolunteerNeeds = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: 0.2, duration: 0.6 }}
-        className="text-center text-gray-600 max-w-lg mx-auto mb-12 px-4"
+        className="text-center  text-gray-600 max-w-lg mx-auto mb-12 px-4"
       >
         Dive into immediate volunteer needs where your support can create an
         instant impact.

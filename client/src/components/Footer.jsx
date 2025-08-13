@@ -50,7 +50,7 @@ const socialItems = [
 
 const Footer = () => {
   return (
-    <footer className="bg-blue-500/10 text-gray-900">
+    <footer className="bg-blue-500/10  text-gray-900">
       <div className="max-w-[1240px] mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-6 gap-8 border-b border-gray-300">
         {/* Branding & Newsletter */}
         <div className="md:col-span-2">

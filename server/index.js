@@ -1,11 +1,18 @@
 const express = require('express')
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 5000
 
 
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+};
 const corsOptions = {
     origin: ["http://localhost:5173"],
     credentials: true
@@ -14,6 +21,22 @@ const corsOptions = {
 // MiddleWares
 app.use(express.json())
 app.use(cors(corsOptions))
+app.use(cookieParser())
+
+// Custom Domain
+const verifyToken = (req, res, next) => {
+    const token = req.cookies?.jwtToken
+    if (!token) {
+        return res.status(401).send({ message: "Unauthorized Access" })
+    }
+
+    jwt.verify(token, process.env.VOLORA_JWT_TOKEN, (err, decoded) => {
+        if (err) return res.status(401).send({ message: "Unauthorized Access" })
+        console.log(decoded)
+        req.user = decoded;
+        next()
+    })
+}
 
 
 /* Database Starts Here */
@@ -38,6 +61,23 @@ async function run() {
         /* DB collection End */
 
 
+        /* JWT related APIs start */
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            console.log(user)
+            const token = jwt.sign(user, process.env.VOLORA_JWT_TOKEN, { expiresIn: '10d' });
+            res.cookie('jwtToken', token, cookieOptions).send({ message: 'Login Success' });
+        })
+
+        app.get('/logout', (req, res) => {
+            res.clearCookie('jwtToken', process.env.VOLORA_JWT_TOKEN, { ...cookieOptions, maxAge: 0 }).send({ message: 'Success: Sign Out' })
+        })
+
+
+
+        /* JWT related APIs end */
+
+
         // Get All Volunteers in collection..
         app.get('/volunteers', async (req, res) => {
             const { searchField } = req.query;
@@ -58,7 +98,6 @@ async function run() {
         // Post/Include a new volunteer post
         app.post('/add-volunteer', async (req, res) => {
             const volunteerData = req.body;
-            console.log(volunteerData)
             try {
                 const result = await volunteerCollection.insertOne(volunteerData);
                 res.send(result);
@@ -70,7 +109,8 @@ async function run() {
 
 
         // Volunteer need post detail / update a specific job, get a specif volunteer data
-        app.get('/volunteer/:id', async (req, res) => {
+        app.get('/volunteer/:id', verifyToken, async (req, res) => {
+            console.log(req?.user)
             const { id } = req.params;
             const result = await volunteerCollection.findOne({ _id: new ObjectId(id) });
             res.send(result)
@@ -78,8 +118,10 @@ async function run() {
 
 
         // Retrieve my volunteer need post & my volunteer request post
-        app.get('/my-post', async (req, res) => {
+        app.get('/my-post', verifyToken, async (req, res) => {
             const { email } = req.query;
+            if (req.user?.email !== email) return res.status(403).send({ message: "Forbidden Access" })
+
             const query = { "organizer.email": email }
             const result = await volunteerCollection.find(query).toArray();
             res.send(result)
@@ -106,30 +148,7 @@ async function run() {
         })
 
 
-
-        /* {
-          thumbnail: 'https://i.ibb.co/Hgt3t5X/Young-children-attending-a-workshop-in-an-art-gall.jpg',
-          postTitle: "Children's Art Workshop",
-          location: 'City Art Center, 456 Elm St, Artsville, USA',     
-          deadline: '2025-12-05T13:09:02.000Z',
-          category: 'Education',
-          organizer: {
-            name: 'Pranta Deb Nath',
-            email: 'prantadeb@gmail.com',
-            photo: 'https://i.ibb.co/rk7V7X0/1655721926569-3.jpg'      
-          },
-          suggestion: 'adsda',
-          volunteerId: '6896eed51bac51b4c94246ec',
-          volunteerDetails: {
-            name: 'Hridoy khan',
-            email: 'hridoykhan148385@gmail.com',
-            photo: 'https://lh3.googleusercontent.com/a/ACg8ocKyl10F6nY22XSEeVV221cHtKjsA6FjKq1Gx1I7Rd_A5AOCmqd-zg=s96-c'
-          }
-        } */
-
-        /* Request Collection Starts */
-
-
+        /* ****************** Request Collection Starts ************* */
         // Post request
 
         app.post('/volunteer-request/:email', async (req, res) => {
@@ -152,7 +171,7 @@ async function run() {
                     return res.send({ message: 'No volunteer needed' });
                 }
                 // Reducing volunteer needed Count
-                const updateVolunteerNeedCount = await volunteerCollection.updateOne(query, { $inc: { volunteersNeeded: -1 } })
+                await volunteerCollection.updateOne(query, { $inc: { volunteersNeeded: -1 } })
 
                 const result = await requestCollection.insertOne({ volunteerId, ...request });
 
@@ -164,9 +183,9 @@ async function run() {
         })
 
         // Retrieve my requests
-        app.get('/my-requests/:email', async (req, res) => {
+        app.get('/my-requests/:email', verifyToken, async (req, res) => {
             const { email } = req.params;
-            console.log(email)
+            if (req.user?.email !== email) return res.status(403).send({ message: "Forbidden Access" })
             const query = { "volunteerDetails.email": email }
             const result = await requestCollection.find(query).toArray();
             res.send(result)
@@ -174,37 +193,61 @@ async function run() {
 
         // Delete My request
         app.delete('/volunteer-request/:id', async (req, res) => {
-            res.send(await requestCollection.deleteOne({ _id: new ObjectId(req.params.id) }))
+            try {
+                const { volunteerId } = req.body;
+
+                if (!volunteerId) {
+                    return res.status(400).send({ message: "volunteerId is required" });
+                }
+
+                const matchedVolunteer = await volunteerCollection.findOne({ _id: new ObjectId(volunteerId) });
+                if (matchedVolunteer) {
+                    await volunteerCollection.updateOne(
+                        { _id: new ObjectId(volunteerId) },
+                        { $inc: { volunteersNeeded: 1 } }
+                    );
+                }
+
+                await requestCollection.deleteOne({ _id: new ObjectId(req.params.id) });
+
+                res.send({ message: "Request deleted successfully!" });
+            } catch (error) {
+                console.error(error);
+                res.status(500).send({ message: "Error deleting request" });
+            }
+        });
+
+        // Update volunteer status
+        app.patch('/volunteer-requests/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const { status } = req.body;
+            const updateStatus = {
+                $set: { status: status }
+            }
+            const post = await requestCollection.findOne({ _id: new ObjectId(id) });
+            const result = await requestCollection.updateOne(query, updateStatus);
+            res.send({ result, post })
         })
 
+        // Get all volunteer requests
+        app.get('/volunteer-requests/:email', verifyToken, async (req, res) => {
+            const { email } = req.params;
+            if (req.user?.email !== email) return res.status(403).send({ message: "Forbidden Access" })
 
+            res.send(await requestCollection.find({ 'organizer.email': email }).toArray());
+        })
 
-        /* Request Collection Ends */
-
-
-
-
+        /* ***************** Request Collection Ends ******************* */
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
-
-
 
     }
 }
 run().catch(console.dir);
 
-
-
 /* Database Ends Here */
-
-
-
-
-
-
-
-
 
 
 app.get('/', (req, res) => {

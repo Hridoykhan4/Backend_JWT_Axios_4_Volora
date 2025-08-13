@@ -25,7 +25,6 @@ const ManageMyPosts = () => {
       return data;
     },
     enabled: !!user?.email,
-    staleTime: 1000 * 60,
   });
 
   const {
@@ -40,7 +39,6 @@ const ManageMyPosts = () => {
       return data;
     },
     enabled: !!user?.email,
-    staleTime: 1000 * 60,
   });
 
   if (isLoading) return <LoadingSpinner></LoadingSpinner>;
@@ -66,7 +64,7 @@ const ManageMyPosts = () => {
       {myPosts.length > 0 && (
         <section className="bg-white shadow-lg rounded-xl p-6 border border-gray-200">
           <h2 className="text-center text-xl font-bold mb-5 text-indigo-600">
-            📌 My Posted Jobs
+            📌 My Volunteer Need Post
           </h2>
           {myPosts.length > 0 ? (
             <div className="overflow-x-auto static rounded-lg border border-gray-200">

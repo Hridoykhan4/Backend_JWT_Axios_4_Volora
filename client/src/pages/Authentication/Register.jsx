@@ -1,14 +1,24 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import AuthContext from "../../Providers/Auth/AuthContext";
 import useScrollTo from "../../hooks/useScrollTo";
+import useAuthValue from "../../hooks/useAuthValue";
 
 const Register = () => {
+  const {user} = useAuthValue()
   useScrollTo();
   const navigate = useNavigate();
   const { createUser, updateUserProfile, setUser, setLoading } =
     useContext(AuthContext);
+
+
+  useEffect(() => {
+    if(user){
+      navigate('/')
+    }
+  }, [user, navigate])
+
 
   // Controlled inputs
   const [formData, setFormData] = useState({

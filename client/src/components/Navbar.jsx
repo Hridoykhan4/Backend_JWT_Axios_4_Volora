@@ -21,7 +21,6 @@ const Navbar = () => {
   const closeDrawer = () => setOpen(false);
   const navLinkStyles = "font-medium  rounded  transition";
 
-
   const pubLicNavItems = (
     <>
       {[
@@ -75,7 +74,7 @@ const Navbar = () => {
               >
                 <div className="w-12  rounded-full">
                   <img
-                  referrerPolicy="no-referrer"
+                    referrerPolicy="no-referrer"
                     title={user?.displayName}
                     alt="Tailwind CSS Navbar component"
                     src={user?.photoURL}
@@ -84,7 +83,7 @@ const Navbar = () => {
               </div>
               <ul
                 tabIndex={0}
-                className="menu menu-sm dropdown-content relative bg-base-100 rounded-box !z-[1000] mt-3 w-52 p-2 shadow"
+                className="menu space-y-2 menu-sm dropdown-content relative bg-base-100 rounded-box !z-[1000] mt-3 w-52 p-2 shadow"
               >
                 <li>
                   <ul className="dropdown dropdown-end w-full cursor-pointer -ml-[1px]">
@@ -92,7 +91,7 @@ const Navbar = () => {
                       <div className="indicator">
                         <div
                           // href="/profile"
-                          className="flex items-center space-x-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                          className="flex items-center space-x-2 hover:text-indigo-600  transition"
                         >
                           <FiUser size={20} />
                           <span>My Profile 👇</span>
@@ -106,7 +105,7 @@ const Navbar = () => {
                       <li>
                         <NavLink
                           to="/add-volunteer"
-                          className="flex items-center space-x-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                          className="flex items-center space-x-2 hover:text-indigo-600  transition"
                         >
                           <FiPlusCircle size={20} />
                           <span>Add Volunteer Post</span>
@@ -115,7 +114,7 @@ const Navbar = () => {
                       <li>
                         <NavLink
                           to="/manage-posts"
-                          className="flex items-center space-x-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                          className="flex items-center space-x-2 hover:text-indigo-600  transition"
                         >
                           <FiClipboard size={20} />
                           <span>Manage My Posts</span>
@@ -126,24 +125,15 @@ const Navbar = () => {
                 </li>
 
                 <li>
-                  <a
-                    href="/volunteer-requests"
-                    className="flex items-center space-x-2 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                  <NavLink
+                    to="/volunteer-requests"
+                    className="flex items-center space-x-2 hover:text-indigo-600  transition"
                   >
                     <FiUsers size={20} />
-                    <span>Volunteer Requested</span>
-                  </a>
+                    <span>Volunteer Requests</span>
+                  </NavLink>
                 </li>
-                <li>
-                  <button
-                    // onClick={toggleDarkMode}
-                    aria-label="Toggle Dark Mode"
-                    className="p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-700 transition"
-                  >
-                    <FiSun></FiSun>
-                    {/* {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />} */}
-                  </button>
-                </li>
+
                 <li>
                   <button
                     onClick={() => {
@@ -155,7 +145,7 @@ const Navbar = () => {
                       });
                     }}
                     aria-label="Log Out"
-                    className="flex items-center space-x-2 text-red-600 hover:text-red-800 dark:hover:text-red-400 transition"
+                    className="flex items-center space-x-2 text-red-600 hover:text-red-800  transition"
                   >
                     <FiLogOut size={20} />
                     <span>Log Out</span>
@@ -174,14 +164,6 @@ const Navbar = () => {
           <GiHamburgerMenu />
         </button>
       </div>
-
-      {/* Backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0  bg-opacity-40 z-[998]"
-          onClick={closeDrawer}
-        />
-      )}
 
       {/* Drawer */}
       <div
