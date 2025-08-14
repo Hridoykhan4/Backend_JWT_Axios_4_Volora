@@ -3,6 +3,7 @@ import logo from "../assets/imagesRandom/volora_logo2.png";
 import useAuthValue from "../hooks/useAuthValue";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { useState } from "react";
+import { CgProfile } from "react-icons/cg";
 import toast from "react-hot-toast";
 import {
   FiUser,
@@ -102,6 +103,15 @@ const Navbar = () => {
                       tabIndex={0}
                       className=" dropdown-content bg-base-100 space-y-2 z-1 mt-3  shadow"
                     >
+                      <li>
+                        <NavLink
+                          to="/profile-info"
+                          className="flex items-center space-x-2 hover:text-indigo-600  transition"
+                        >
+                          <CgProfile size={20} />
+                          <span>Visit Profile</span>
+                        </NavLink>
+                      </li>
                       <li>
                         <NavLink
                           to="/add-volunteer"

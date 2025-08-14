@@ -40,7 +40,7 @@ const VolunteerNeeds = () => {
     );
 
   return (
-    <div className="py-16 w-11/12 max-w-7xl mx-auto">
+    <div className="pt-16 pb-6 w-11/12 max-w-7xl mx-auto">
       <motion.h2
         initial={{ opacity: 0, y: -20 }}
         whileInView={{ opacity: 1, y: 0 }}

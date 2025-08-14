@@ -201,16 +201,19 @@ const AddVolunteerNeed = () => {
           <div>
             <label className="block font-medium mb-1">Select a category</label>
             <select
-              defaultValue={formData.category}
+              required
+              value={formData.category}
               name="category"
               onChange={handleChange}
               className="select"
             >
-              <option disabled={true}>Pick a Category</option>
-              <option>HealthCare</option>
-              <option>Education</option>
-              <option>Social Service</option>
-              <option>Animal Welfare</option>
+              <option value="" disabled>
+                Pick a Category
+              </option>{" "}
+              <option value="HealthCare">HealthCare</option>
+              <option value="Education">Education</option>
+              <option value="Social Service">Social Service</option>
+              <option value="Animal Welfare">Animal Welfare</option>
             </select>
           </div>
 

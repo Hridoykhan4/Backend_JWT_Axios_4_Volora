@@ -32,7 +32,7 @@ const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     setLoading(true);
-    const result = signInWithEmailAndPassword(auth, email, password);
+    const result = await signInWithEmailAndPassword(auth, email, password);
     await axiosSecure.post("/jwt", { email: result?.user?.email });
     return result;
   };

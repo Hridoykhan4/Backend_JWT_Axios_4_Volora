@@ -32,7 +32,6 @@ const verifyToken = (req, res, next) => {
 
     jwt.verify(token, process.env.VOLORA_JWT_TOKEN, (err, decoded) => {
         if (err) return res.status(401).send({ message: "Unauthorized Access" })
-        console.log(decoded)
         req.user = decoded;
         next()
     })
@@ -64,8 +63,8 @@ async function run() {
         /* JWT related APIs start */
         app.post('/jwt', (req, res) => {
             const user = req.body;
-            console.log(user)
-            const token = jwt.sign(user, process.env.VOLORA_JWT_TOKEN, { expiresIn: '10d' });
+    
+            const token = jwt.sign(user, process.env.VOLORA_JWT_TOKEN, { expiresIn: '365d' });
             res.cookie('jwtToken', token, cookieOptions).send({ message: 'Login Success' });
         })
 
@@ -75,13 +74,13 @@ async function run() {
 
 
 
-        /* JWT related APIs end */
+        /* ****************** JWT related APIs end ************* */
 
 
-        // Get All Volunteers in collection..
-        app.get('/volunteers', async (req, res) => {
+
+        /* ######### Pagination APIs Start ##############  */
+        app.get('/totalVolunteersPostCount', async (req, res) => {
             const { searchField } = req.query;
-            console.log(searchField)
             let query = {}
             if (searchField) {
                 query = {
@@ -91,7 +90,32 @@ async function run() {
                     ]
                 }
             }
-            const result = await volunteerCollection.find(query).toArray()
+            const count = await volunteerCollection.countDocuments(query);
+            res.send({ count });
+        })
+        /* ######### Pagination APIs End ##############  */
+
+
+
+
+
+        // Get All Volunteers in collection..
+        app.get('/volunteers', async (req, res) => {
+            const { searchField, size, page } = req.query;
+
+            const currentPage = parseInt(page - 1);
+            const currentSize = parseInt(size);
+
+            let query = {}
+            if (searchField) {
+                query = {
+                    $or: [
+                        { postTitle: { $regex: searchField, $options: "i" } },
+                        { category: { $regex: searchField, $options: "i" } },
+                    ]
+                }
+            }
+            const result = await volunteerCollection.find(query).skip(currentPage * currentSize).limit(currentSize).toArray()
             res.send(result)
         })
 
@@ -110,7 +134,7 @@ async function run() {
 
         // Volunteer need post detail / update a specific job, get a specif volunteer data
         app.get('/volunteer/:id', verifyToken, async (req, res) => {
-            console.log(req?.user)
+
             const { id } = req.params;
             const result = await volunteerCollection.findOne({ _id: new ObjectId(id) });
             res.send(result)
