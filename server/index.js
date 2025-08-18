@@ -14,7 +14,7 @@ const cookieOptions = {
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
 };
 const corsOptions = {
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173", "https://volora-92f4d.web.app"],
     credentials: true
 }
 
@@ -58,6 +58,7 @@ async function run() {
         const volunteerCollection = client.db('volora').collection('volunteers')
         const requestCollection = client.db('volora').collection('applicant-request');
         const userCollection = client.db('volora').collection('user-info')
+        const reviewCollection = client.db('volora').collection('reviews')
         /* DB collection End */
 
 
@@ -299,6 +300,26 @@ async function run() {
         })
 
         /*   *************   User Collection End ********************************** */
+
+
+
+        /* ******************* Review Start ***************** */
+
+        app.post('/review', async (req, res) => {
+            const review = req.body;
+            res.send(await reviewCollection.insertOne(review));
+        })
+
+        app.get('/reviews', async (req, res) => {
+            const result = await reviewCollection.find().toArray();
+            res.send(result)
+        })
+
+        /* ******************* Review End ***************** */
+
+
+
+
 
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 // eslint-disable-next-line no-unused-vars
-import { motion } from "framer-motion";
+import { motion, number } from "framer-motion";
 import { FaMapMarkerAlt, FaCalendarAlt, FaUsers } from "react-icons/fa";
 import useScrollTo from "../../hooks/useScrollTo";
 import { useState } from "react";
@@ -91,6 +91,40 @@ const VolunteerDetails = () => {
     };
     others.status = "requested";
     await mutateAsync(others);
+  };
+
+  /* Mutate Review Form */
+  const { mutateAsync: reviewAsync } = useMutation({
+    mutationFn: async (reviewData) => {
+      const { data } = await axiosSecure.post("/review", reviewData);
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data?.insertedId) {
+        toast.success("Review has been added");
+        setReviewModal(false);
+      }
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
+    },
+  });
+
+  /* Handle Review Submit */
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    const review = e.target.review.value;
+    const reviewerEmail = user?.email;
+    const reviewerName = user?.displayName;
+    const reviewerPhoto = user?.photoURL;
+    const organizerEmail = volunteer?.organizer?.email;
+    const organizerName = volunteer?.organizer?.name;
+    const organizerPhoto = volunteer?.organizer?.photo;
+    const reviewData = {
+      review,
+      organizerInfo: { organizerEmail, organizerName, organizerPhoto },
+      reviewerInfo: { reviewerName, reviewerEmail, reviewerPhoto },
+      date: new Date().toISOString(),
+    };
+    await reviewAsync(reviewData);
   };
 
   if (isLoading) return <LoadingSpinner></LoadingSpinner>;
@@ -397,25 +431,60 @@ const VolunteerDetails = () => {
           </div>
         )}
 
-        {/* Review Modal */}
         {reviewModal && (
-          // <div className="modal modal-open">
-          <dialog className="modal modal-open modal-bottom sm:modal-middle">
-            <div className="modal-box">
-              <h3 className="font-bold text-lg">Hello!</h3>
-              <p className="py-4">
-                Press ESC key or click the button below to close
-              </p>
+          <div className="modal modal-open modal-bottom sm:modal-middle">
+            <div className="modal-box rounded-2xl shadow-2xl border border-green-200 bg-gradient-to-br from-white via-green-50 to-green-100">
+              {/* Organizer Info */}
+              <div className="flex justify-center items-center gap-4 mb-4">
+                <img
+                  className="w-14 h-14 rounded-full ring-2 ring-green-400 shadow-md"
+                  src={volunteer?.organizer?.photo}
+                  alt="Organizer"
+                />
+                <div>
+                  <p className="font-semibold text-lg">
+                    {volunteer?.organizer?.name}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {volunteer?.organizer?.email}
+                  </p>
+                </div>
+              </div>
+
+              {/* Heading */}
+              <h2 className="text-center font-bold text-xl text-green-700 mb-3">
+                Share Your Feedback 🌟
+              </h2>
+
+              {/* Feedback Form */}
+              <form onSubmit={handleSubmitReview} className="space-y-4">
+                <textarea
+                  name="review"
+                  required
+                  className="textarea textarea-bordered w-full h-28 rounded-xl focus:ring-2 focus:ring-green-500"
+                  placeholder="Write your honest feedback for the organizer..."
+                />
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  className="btn btn-success w-full rounded-xl shadow-md hover:scale-105 transition-transform duration-200"
+                >
+                  🚀 Submit Review
+                </button>
+              </form>
+
+              {/* Close Button */}
               <div className="modal-action">
-                <form method="dialog">
-                  <button onClick={() => setReviewModal(false)} className="btn">
-                    Close
-                  </button>
-                </form>
+                <button
+                  onClick={() => setReviewModal(false)}
+                  className="btn btn-outline btn-error rounded-full w-10 h-10 p-0 text-lg"
+                >
+                  ✕
+                </button>
               </div>
             </div>
-          </dialog>
-          // </div>
+          </div>
         )}
 
         {/* Buttons */}
