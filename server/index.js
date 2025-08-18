@@ -57,13 +57,14 @@ async function run() {
         /* DB collection Starts */
         const volunteerCollection = client.db('volora').collection('volunteers')
         const requestCollection = client.db('volora').collection('applicant-request');
+        const userCollection = client.db('volora').collection('user-info')
         /* DB collection End */
 
 
         /* JWT related APIs start */
         app.post('/jwt', (req, res) => {
             const user = req.body;
-    
+
             const token = jwt.sign(user, process.env.VOLORA_JWT_TOKEN, { expiresIn: '365d' });
             res.cookie('jwtToken', token, cookieOptions).send({ message: 'Login Success' });
         })
@@ -263,6 +264,42 @@ async function run() {
         })
 
         /* ***************** Request Collection Ends ******************* */
+
+
+
+
+
+        /*   *************   User Collection start ********************************** */
+
+        app.put('/users', async (req, res) => {
+            const user = req.body;
+            const query = { email: user?.email }
+            const findUser = await userCollection.findOne(query);
+            if (!findUser) {
+                const result = await userCollection.insertOne(user)
+                return res.send(result);
+            }
+            const result = await userCollection.updateOne(
+                query,
+                { $set: user }
+            )
+            res.send(result);
+        })
+
+
+        /* Get the Users */
+        app.get('/users/:email', verifyToken, async (req, res) => {
+            const { email } = req.params;
+            if (req.user?.email !== email) return res.status(403).send({ message: "Forbidden Access" })
+            const result = await userCollection.findOne({ email: email });
+            if (!result) {
+                return res.send({})
+            }
+            res.send(result)
+        })
+
+        /*   *************   User Collection End ********************************** */
+
 
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {

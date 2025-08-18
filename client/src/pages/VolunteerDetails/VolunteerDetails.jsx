@@ -18,6 +18,7 @@ const VolunteerDetails = () => {
   const axiosSecure = useAxiosSecure();
   const queryClient = useQueryClient();
   const [beVolunteerModal, setBeVolunteerModal] = useState(false);
+  const [reviewModal, setReviewModal] = useState(false);
   const {
     data: volunteer = {},
     isLoading,
@@ -396,6 +397,27 @@ const VolunteerDetails = () => {
           </div>
         )}
 
+        {/* Review Modal */}
+        {reviewModal && (
+          // <div className="modal modal-open">
+          <dialog className="modal modal-open modal-bottom sm:modal-middle">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg">Hello!</h3>
+              <p className="py-4">
+                Press ESC key or click the button below to close
+              </p>
+              <div className="modal-action">
+                <form method="dialog">
+                  <button onClick={() => setReviewModal(false)} className="btn">
+                    Close
+                  </button>
+                </form>
+              </div>
+            </div>
+          </dialog>
+          // </div>
+        )}
+
         {/* Buttons */}
         {user?.email === volunteer?.organizer?.email ? (
           <div className="text-lg font-semibold text-amber-500 animate-pulse">
@@ -418,6 +440,7 @@ const VolunteerDetails = () => {
             )}
 
             <motion.button
+              onClick={() => setReviewModal(true)}
               whileHover={{ scale: 1.08, rotate: -1 }}
               whileTap={{ scale: 0.95 }}
               className="relative overflow-hidden px-6 py-2 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 
